@@ -1,0 +1,660 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ChessInsights — Player Overview & Game Analytics</title>
+  <link rel="stylesheet" href="/style.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+</head>
+<body class="dark-theme">
+  <!-- Top Navigation -->
+  <header class="top-nav">
+    <div class="nav-left">
+      <div class="logo">
+        <svg class="logo-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M12 2L15 8H9L12 2Z" fill="#3B82F6"/>
+          <path d="M8 8H16V13C16 16.5 13.5 19 12 20C10.5 19 8 16.5 8 13V8Z" stroke="#3B82F6" stroke-width="2"/>
+          <path d="M5 22H19" stroke="#3B82F6" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+        <span class="logo-text">Chess<span>Insights</span></span>
+      </div>
+    </div>
+
+    <!-- Search Form -->
+    <div class="nav-center">
+      <form id="search-form" class="search-container">
+        <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="11" cy="11" r="8"></circle>
+          <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+        </svg>
+        <input 
+          type="text" 
+          id="search-input" 
+          placeholder="Search any player on Chess.com (e.g. prabhavagarwal1234, hikaru)..." 
+          autocomplete="off" 
+          spellcheck="false"
+        />
+        <button type="submit" id="search-btn" class="search-action-btn">
+          <span class="btn-text">Search</span>
+          <span class="btn-spinner hidden"></span>
+        </button>
+      </form>
+    </div>
+
+    <div class="nav-right">
+      <button id="theme-toggle" class="theme-toggle-btn" title="Toggle Light / Dark theme">
+        <span class="theme-icon">🌙</span>
+      </button>
+      <div class="lang-selector">EN</div>
+      <button class="nav-btn-link">Log in</button>
+      <button class="nav-btn-primary">Sign up</button>
+    </div>
+  </header>
+
+  <!-- Notification / Alert Bar -->
+  <div id="alert-banner" class="alert-banner hidden">
+    <div class="alert-content">
+      <span class="alert-icon">⚠️</span>
+      <span id="alert-message">Alert message</span>
+    </div>
+    <button id="alert-close" class="alert-close-btn">&times;</button>
+  </div>
+
+  <!-- Main Container -->
+  <div class="app-layout">
+    <!-- Streamlined Sidebar Navigation -->
+    <aside class="sidebar">
+      <nav class="sidebar-nav" id="sidebar-menu">
+        <a href="#overview" class="nav-item active" data-target="overview">
+          <span class="nav-dot"></span>
+          Overview
+        </a>
+        <a href="#repertoire-explorer" class="nav-item" data-target="repertoire-explorer">
+          <span class="nav-dot"></span>
+          Repertoire Explorer
+        </a>
+        <a href="#game-review" class="nav-item" data-target="game-review">
+          <span class="nav-dot"></span>
+          Game Review
+        </a>
+        <a href="#how-to-beat" class="nav-item" data-target="how-to-beat">
+          <span class="nav-dot"></span>
+          How to Beat
+        </a>
+        <a href="#psychology" class="nav-item" data-target="psychology">
+          <span class="nav-dot"></span>
+          Psychology & Style
+        </a>
+        <a href="#metrics-section" class="nav-item" data-target="metrics-section">
+          <span class="nav-dot"></span>
+          Rivals & Time Stats
+        </a>
+        <a href="#compare" class="nav-item" data-target="compare">
+          <span class="nav-dot"></span>
+          Compare Players
+        </a>
+        <a href="#saved-players" class="nav-item" data-target="saved-players">
+          <span class="nav-dot"></span>
+          Saved Scout List
+        </a>
+        <a href="#settings" class="nav-item" data-target="settings">
+          <span class="nav-dot"></span>
+          Settings
+        </a>
+      </nav>
+
+      <div class="pro-upgrade-card">
+        <div class="pro-tag">UPGRADE TO PRO</div>
+        <p class="pro-desc">Unlock deep analysis, Twin Bot sparring, and automated weekly reports.</p>
+        <button class="upgrade-btn">Upgrade</button>
+      </div>
+    </aside>
+
+    <!-- Main Content Dashboard -->
+    <main class="dashboard-content" id="main-content-scroll">
+      <!-- Loading Overlay -->
+      <div id="loading-overlay" class="loading-overlay hidden">
+        <div class="spinner-box">
+          <div class="spinner-circle"></div>
+          <p class="spinner-text">Fetching live data & games from Chess.com...</p>
+        </div>
+      </div>
+
+      <!-- Quick Pre-warmed Chips -->
+      <div class="demo-quick-bar">
+        <span class="quick-label">⚡ Demo Quick Profiles:</span>
+        <button class="chip-btn" data-username="prabhavagarwal1234">prabhavagarwal1234</button>
+        <button class="chip-btn" data-username="hikaru">hikaru</button>
+        <button class="chip-btn" data-username="magnuscarlsen">magnuscarlsen</button>
+        <button class="chip-btn" data-username="danielnaroditsky">danielnaroditsky</button>
+      </div>
+
+      <!-- SECTION 1: TOP PROFILE & STATS -->
+      <section class="player-header-card section-anchor" id="overview">
+        <div id="fallback-badge" class="fallback-badge hidden">
+          <span>⚠️ Sample data (API unavailable)</span>
+        </div>
+
+        <div class="player-header-grid">
+          <!-- Left: Player Info & Ratings -->
+          <div class="player-main-info">
+            <div class="profile-top-row">
+              <div class="avatar-container" id="player-avatar-container">
+                <div class="avatar-initials" id="player-initials">PA</div>
+                <img src="" alt="Avatar" id="player-avatar-img" class="avatar-img hidden" />
+                <span class="online-indicator"></span>
+              </div>
+
+              <div class="profile-meta">
+                <div class="username-row">
+                  <h1 class="username" id="display-username">prabhavagarwal1234</h1>
+                  <span class="verified-icon" title="Verified Account">✓</span>
+                  <button class="share-icon-btn" title="View on Chess.com" id="profile-external-link">🔗</button>
+                </div>
+                <div class="user-subtext">
+                  <span class="flag-icon" id="player-flag">🇮🇳</span>
+                  <span class="country-name" id="player-country">India [IN]</span>
+                  <span class="meta-separator">•</span>
+                  <span class="joined-date" id="player-joined">Joined Jan 16, 2013</span>
+                  <span class="meta-separator">•</span>
+                  <span class="last-online" id="player-last-online">Last active 2 hours ago</span>
+                </div>
+              </div>
+
+              <div class="rating-badge-container">
+                <div class="rating-badge-box">
+                  <span class="rating-number" id="primary-rating-value">1987</span>
+                  <span class="rating-type" id="primary-rating-type">RAPID</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Games & Win/Loss/Draw Stats Grid -->
+            <div class="stats-row">
+              <div class="stat-card">
+                <span class="stat-num" id="stat-total-games">59</span>
+                <span class="stat-label">Games (<span id="stat-month-label">Aug 2026</span>)</span>
+              </div>
+              <div class="stat-card win-stat">
+                <span class="stat-num" id="stat-wins">27</span>
+                <span class="stat-label">Wins (<span id="stat-win-pct">45.8%</span>)</span>
+              </div>
+              <div class="stat-card draw-stat">
+                <span class="stat-num" id="stat-draws">1</span>
+                <span class="stat-label">Draws (<span id="stat-draw-pct">1.7%</span>)</span>
+              </div>
+              <div class="stat-card loss-stat">
+                <span class="stat-num" id="stat-losses">31</span>
+                <span class="stat-label">Losses (<span id="stat-loss-pct">52.5%</span>)</span>
+              </div>
+            </div>
+
+            <!-- Rating Breakdown Row -->
+            <div class="ratings-breakdown-row">
+              <div class="rating-col">
+                <span class="sub-rating-val" id="rating-bullet">1391</span>
+                <span class="sub-rating-lbl">Bullet</span>
+              </div>
+              <div class="rating-col">
+                <span class="sub-rating-val" id="rating-blitz">1620</span>
+                <span class="sub-rating-lbl">Blitz</span>
+              </div>
+              <div class="rating-col">
+                <span class="sub-rating-val highlight-rating" id="rating-rapid">1987</span>
+                <span class="sub-rating-lbl">Rapid</span>
+              </div>
+              <div class="rating-col">
+                <span class="sub-rating-val" id="rating-puzzle">2265</span>
+                <span class="sub-rating-lbl">Puzzle</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Right: Stalker Score Card -->
+          <div class="stalker-score-card">
+            <div class="score-header">
+              <h3>Stalker Score</h3>
+              <a href="#psychology" class="info-link">What is this?</a>
+            </div>
+            <div class="score-body">
+              <div class="gauge-box">
+                <div class="score-circle">
+                  <span class="score-val">56</span>
+                </div>
+                <p class="gauge-caption">Your opponent has average consistency. They struggle under time pressure and in endgames.</p>
+              </div>
+
+              <div class="score-bars">
+                <div class="metric-row">
+                  <span class="metric-name">Time Trouble</span>
+                  <div class="bar-container"><div class="bar-fill" style="width: 64%;"></div></div>
+                  <span class="metric-num">64</span>
+                </div>
+                <div class="metric-row">
+                  <span class="metric-name">Win Streak</span>
+                  <div class="bar-container"><div class="bar-fill" style="width: 60%;"></div></div>
+                  <span class="metric-num">60</span>
+                </div>
+                <div class="metric-row">
+                  <span class="metric-name">Critical Mistakes</span>
+                  <div class="bar-container"><div class="bar-fill warning-bar" style="width: 38%;"></div></div>
+                  <span class="metric-num">38</span>
+                </div>
+                <div class="metric-row">
+                  <span class="metric-name">Opening Accuracy</span>
+                  <div class="bar-container"><div class="bar-fill" style="width: 55%;"></div></div>
+                  <span class="metric-num">55</span>
+                </div>
+                <div class="metric-row">
+                  <span class="metric-name">Endgame Handling</span>
+                  <div class="bar-container"><div class="bar-fill" style="width: 50%;"></div></div>
+                  <span class="metric-num">50</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- SECTION 2: MOVE-BY-MOVE REPERTOIRE EXPLORER -->
+      <section class="panel-card section-anchor" id="repertoire-explorer">
+        <div class="card-header-tabs">
+          <div class="header-title-box">
+            <h3>♟️ Move-by-Move Repertoire Explorer</h3>
+            <span class="sub-header-tip">Navigate move-by-move to discover the player's most frequent choices and win rates</span>
+          </div>
+          <span class="live-tag">🔴 LIVE INTERACTIVE BOARD</span>
+        </div>
+
+        <div class="side-by-side-explorer">
+          <!-- Left: Interactive Repertoire Board -->
+          <div class="board-column">
+            <div class="board-wrapper">
+              <div class="interactive-chessboard" id="rep-chessboard">
+                <!-- Squares rendered dynamically via JS -->
+              </div>
+            </div>
+            <!-- Board Controls -->
+            <div class="board-controls-bar">
+              <button id="rep-btn-start" class="ctrl-btn" title="Reset to Start">|◀</button>
+              <button id="rep-btn-prev" class="ctrl-btn" title="Previous Move">◀ Prev</button>
+              <button id="rep-btn-next" class="ctrl-btn primary-ctrl" title="Play Most Common Move">Next (Common) ▶</button>
+              <button id="rep-btn-flip" class="ctrl-btn" title="Flip Board">🔄 Flip</button>
+            </div>
+          </div>
+
+          <!-- Right: Move Tree & Statistics -->
+          <div class="explorer-data-column">
+            <!-- Current Position Banner -->
+            <div class="pos-banner">
+              <div class="pos-header">
+                <span class="pos-step-badge" id="rep-pos-ply">Start</span>
+                <h4 id="rep-pos-title">Starting Position</h4>
+              </div>
+              <div class="pos-stats-row">
+                <span class="pos-stat">Total Games: <strong id="rep-pos-games">59</strong></span>
+                <span class="pos-stat">Win Rate: <strong id="rep-pos-winrate" class="green-text">45.8%</strong></span>
+              </div>
+            </div>
+
+            <!-- Breadcrumb Path -->
+            <div class="rep-breadcrumbs" id="rep-breadcrumbs">
+              <span class="crumb active" data-index="-1">Start</span>
+            </div>
+
+            <!-- Candidate Responses Section -->
+            <div class="next-moves-container">
+              <h5 class="sub-heading">Next Candidate Moves Played by Player:</h5>
+              <div class="candidate-moves-list" id="rep-candidate-moves">
+                <!-- Populated dynamically via JS -->
+              </div>
+            </div>
+
+            <!-- Overview Table -->
+            <div class="mini-rep-table-box">
+              <h5 class="sub-heading">Summary of Key Repertoire Openings:</h5>
+              <div class="rep-table-container">
+                <table class="rep-table">
+                  <thead>
+                    <tr>
+                      <th>Opening / Move</th>
+                      <th>Games</th>
+                      <th>Win %</th>
+                      <th>Perf</th>
+                    </tr>
+                  </thead>
+                  <tbody id="repertoire-table-body">
+                    <!-- Populated dynamically -->
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- SECTION 3: INTERACTIVE GAME REVIEW -->
+      <section class="game-review-section section-anchor" id="game-review">
+        <div class="card-header-tabs">
+          <div class="header-title-box">
+            <h3>🔍 Full Chess Game Review & Move Player</h3>
+            <span class="sub-header-tip">Step through full games move-by-move with computer evaluation and annotations</span>
+          </div>
+          <div class="game-select-box">
+            <label for="game-selector">Select Game:</label>
+            <select id="game-selector" class="game-dropdown">
+              <!-- Populated dynamically with recent games -->
+            </select>
+          </div>
+        </div>
+
+        <div class="board-body-row">
+          <!-- Left: Interactive Chess Board -->
+          <div class="game-player-board-box">
+            <div class="interactive-chessboard" id="review-chessboard">
+              <!-- Rendered via JS -->
+            </div>
+            <!-- Player Board Controls -->
+            <div class="board-controls-bar">
+              <button id="game-btn-first" class="ctrl-btn" title="First Move">|◀</button>
+              <button id="game-btn-prev" class="ctrl-btn" title="Previous Move">◀</button>
+              <button id="game-btn-play" class="ctrl-btn play-btn" title="Play / Pause">▶ Play</button>
+              <button id="game-btn-next" class="ctrl-btn" title="Next Move">▶</button>
+              <button id="game-btn-last" class="ctrl-btn" title="Last Move">▶|</button>
+              <button id="game-btn-flip" class="ctrl-btn" title="Flip Board">🔄</button>
+            </div>
+          </div>
+
+          <!-- Right: Move Review, Notation & Analysis -->
+          <div class="board-analysis-side">
+            <!-- Game Players Header -->
+            <div class="review-game-meta-card">
+              <div class="player-versus-row">
+                <div class="versus-side white-side">
+                  <span class="player-color-dot white"></span>
+                  <span class="versus-name" id="game-white-name">SS_Eugenia</span>
+                  <span class="versus-rating" id="game-white-rating">(1972)</span>
+                </div>
+                <span class="game-res-badge" id="game-result-badge">0-1</span>
+                <div class="versus-side black-side">
+                  <span class="player-color-dot black"></span>
+                  <span class="versus-name" id="game-black-name">PrabhavAgarwal1234</span>
+                  <span class="versus-rating" id="game-black-rating">(2005)</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Accuracy Metrics -->
+            <div class="accuracy-metrics">
+              <div class="acc-box white-acc">
+                <span class="acc-val" id="game-acc-white">82.1</span>
+                <span class="acc-lbl">ACCURACY (WHITE)</span>
+              </div>
+              <div class="acc-box black-acc">
+                <span class="acc-val" id="game-acc-black">65.4</span>
+                <span class="acc-lbl">ACCURACY (BLACK)</span>
+              </div>
+            </div>
+
+            <!-- Current Move Evaluation Callout -->
+            <div class="move-eval-box" id="move-eval-box">
+              <div class="eval-header-line">
+                <span class="curr-move-badge" id="curr-move-label">1. e4</span>
+                <span class="eval-score" id="curr-eval-score">+0.20</span>
+              </div>
+              <p class="mistake-text" id="curr-move-comment">Starting opening position.</p>
+            </div>
+
+            <!-- Move History List (Clickable moves) -->
+            <div class="notation-scroll-box" id="notation-scroll-box">
+              <!-- Rendered via JS -->
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- SECTION 4: BOT TWIN -->
+      <section class="twin-banner-card">
+        <div class="twin-left">
+          <span class="twin-icon">🤖</span>
+          <div class="twin-text">
+            <h4 id="twin-title">Play against <span class="twin-username">prabhavagarwal1234</span>'s Twin</h4>
+            <p>Practice against an AI clone of their exact playing style and try to outplay it.</p>
+          </div>
+        </div>
+        <div class="twin-right">
+          <div class="bot-rating-box">
+            <span class="bot-val">1,431</span>
+            <span class="bot-lbl">Bot rating</span>
+          </div>
+          <button class="play-twin-btn">Play vs Twin</button>
+        </div>
+      </section>
+
+      <!-- SECTION 5: HOW TO BEAT THEM (INTERACTIVE TABS: SUMMARY / WHITE / BLACK) -->
+      <section class="how-to-beat-card section-anchor" id="how-to-beat">
+        <div class="card-header-tabs">
+          <div class="header-title-box">
+            <h3>How to beat them</h3>
+            <span class="sub-header-tip" id="how-to-beat-tip">Complete guide to victory: they lose 27% of games from won positions</span>
+          </div>
+          <div class="tab-pill-group" id="how-to-beat-tabs">
+            <button class="pill active" data-tab="summary">Summary</button>
+            <button class="pill" data-tab="white">White</button>
+            <button class="pill" data-tab="black">Black</button>
+          </div>
+        </div>
+
+        <div class="strengths-weaknesses-grid">
+          <!-- Weaknesses Column -->
+          <div class="weakness-col" id="weakness-col-container">
+            <h5 class="col-heading red-text" id="weakness-col-title">WEAKNESSES — areas they struggle in</h5>
+            <div id="weakness-items-list">
+              <!-- Rendered via JS -->
+            </div>
+          </div>
+
+          <!-- Strengths Column -->
+          <div class="strength-col" id="strength-col-container">
+            <h5 class="col-heading green-text" id="strength-col-title">STRENGTHS — areas they excel in</h5>
+            <div id="strength-items-list">
+              <!-- Rendered via JS -->
+            </div>
+            <div class="bullet-tips" id="how-to-beat-bullet-tips">
+              <!-- Rendered via JS -->
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- SECTION 6: PSYCHOLOGY -->
+      <section class="panel-card section-anchor" id="psychology">
+        <div class="card-header-tabs">
+          <div class="header-title-box">
+            <h3>🧠 Psychological Profile & Play Style</h3>
+            <span class="sub-header-tip">Behavioral analysis under stress, time pressure, and tilting tendencies</span>
+          </div>
+        </div>
+        <div class="psych-grid">
+          <div class="psych-box">
+            <span class="psych-icon">⏱️</span>
+            <h5>Time Scramble Tendency</h5>
+            <p>Spends 45% of total clock time on moves 15–22. Prone to clock panicking under 30 seconds.</p>
+          </div>
+          <div class="psych-box">
+            <span class="psych-icon">🔥</span>
+            <h5>Tilt Factor: Low-Medium</h5>
+            <p>Maintains solid opening discipline following consecutive losses. Rebound win rate: 58%.</p>
+          </div>
+          <div class="psych-box">
+            <span class="psych-icon">⚔️</span>
+            <h5>Tactical Aggression</h5>
+            <p>Favors active piece play over passive defense. Prefers sharp imbalances over symmetrical structures.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- SECTION 7: RIVALS & TIME MANAGEMENT -->
+      <section class="section-anchor" id="metrics-section">
+        <div class="three-col-grid">
+          <!-- Frequent Rivals -->
+          <div class="panel-card">
+            <h4>Frequent Rivals</h4>
+            <span class="panel-sub">Recent battle record with top rivals</span>
+            <div class="rival-list">
+              <div class="rival-row">
+                <span class="rival-rank">1</span>
+                <span class="rival-name">DragonKnight</span>
+                <span class="rival-score">128 / 58%</span>
+              </div>
+              <div class="rival-row">
+                <span class="rival-rank">2</span>
+                <span class="rival-name">Samyak_08</span>
+                <span class="rival-score">112 / 61%</span>
+              </div>
+              <div class="rival-row">
+                <span class="rival-rank">3</span>
+                <span class="rival-name">ChessRookie_21</span>
+                <span class="rival-score">97 / 49%</span>
+              </div>
+              <div class="rival-row">
+                <span class="rival-rank">4</span>
+                <span class="rival-name">RoyalBishop</span>
+                <span class="rival-score">85 / 55%</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Head to Head -->
+          <div class="panel-card text-center">
+            <h4>Head to Head</h4>
+            <span class="panel-sub">Win results against top opponents</span>
+            <div class="donut-box">
+              <div class="donut-chart">
+                <div class="donut-center">
+                  <span class="donut-pct">64%</span>
+                  <span class="donut-lbl">Winrate</span>
+                </div>
+              </div>
+            </div>
+            <div class="h2h-counts">
+              <div class="h2h-item green-text"><strong>12</strong> Wins</div>
+              <div class="h2h-item red-text"><strong>6</strong> Losses</div>
+              <div class="h2h-item gray-text"><strong>3</strong> Draws</div>
+            </div>
+          </div>
+
+          <!-- Time Management -->
+          <div class="panel-card">
+            <h4>Time Management</h4>
+            <span class="panel-sub">Time usage across games</span>
+            <div class="time-matrix">
+              <div class="time-box">
+                <span class="time-pct">27%</span>
+                <span class="time-lbl">&lt; 1 min</span>
+              </div>
+              <div class="time-box">
+                <span class="time-pct">34%</span>
+                <span class="time-lbl">1-5 min</span>
+              </div>
+              <div class="time-box">
+                <span class="time-pct">21%</span>
+                <span class="time-lbl">5-15 min</span>
+              </div>
+              <div class="time-box">
+                <span class="time-pct">18%</span>
+                <span class="time-lbl">&gt; 15 min</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- SECTION 8: COMPARE PLAYERS -->
+      <section class="panel-card section-anchor" id="compare">
+        <div class="card-header-tabs">
+          <div class="header-title-box">
+            <h3>⚔️ Player Comparison</h3>
+            <span class="sub-header-tip">Compare playing styles, opening accuracy, and win probabilities</span>
+          </div>
+        </div>
+        <div class="compare-row">
+          <div class="compare-side">
+            <h4 class="twin-username">prabhavagarwal1234</h4>
+            <span class="compare-stat">Rating: <strong id="compare-p1-rating">1987</strong></span>
+            <span class="compare-stat">Aggressiveness: <strong>72%</strong></span>
+            <span class="compare-stat">Endgame Rating: <strong>1940</strong></span>
+          </div>
+          <div class="compare-vs">VS</div>
+          <div class="compare-side">
+            <h4>Opponent (Select or Search)</h4>
+            <span class="compare-stat">Rating: <strong>1950</strong></span>
+            <span class="compare-stat">Aggressiveness: <strong>68%</strong></span>
+            <span class="compare-stat">Endgame Rating: <strong>1980</strong></span>
+          </div>
+        </div>
+      </section>
+
+      <!-- SECTION 9: SAVED PLAYERS -->
+      <section class="panel-card section-anchor" id="saved-players">
+        <div class="card-header-tabs">
+          <div class="header-title-box">
+            <h3>⭐ Saved Players & Scout List</h3>
+            <span class="sub-header-tip">Tracked profiles and tournament preparation watchlist</span>
+          </div>
+        </div>
+        <div class="saved-players-list">
+          <div class="saved-player-item" data-username="prabhavagarwal1234">
+            <span class="saved-name">prabhavagarwal1234</span>
+            <span class="saved-meta">Rapid 1987 • India</span>
+            <button class="load-saved-btn">Load</button>
+          </div>
+          <div class="saved-player-item" data-username="hikaru">
+            <span class="saved-name">hikaru</span>
+            <span class="saved-meta">Blitz 3280 • USA</span>
+            <button class="load-saved-btn">Load</button>
+          </div>
+          <div class="saved-player-item" data-username="magnuscarlsen">
+            <span class="saved-name">magnuscarlsen</span>
+            <span class="saved-meta">Rapid 2941 • Norway</span>
+            <button class="load-saved-btn">Load</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- SECTION 10: SETTINGS -->
+      <section class="panel-card section-anchor" id="settings">
+        <div class="card-header-tabs">
+          <div class="header-title-box">
+            <h3>⚙️ Preferences & Settings</h3>
+            <span class="sub-header-tip">Configure analytics depth, default platform, and display options</span>
+          </div>
+        </div>
+        <div class="settings-grid">
+          <div class="setting-item">
+            <label>Default Platform</label>
+            <select class="setting-select" id="default-platform">
+              <option value="chess.com" selected>Chess.com (Public API)</option>
+              <option value="lichess">Lichess (Coming Soon)</option>
+            </select>
+          </div>
+          <div class="setting-item">
+            <label>Analysis Cache Duration</label>
+            <select class="setting-select">
+              <option value="5" selected>5 Minutes (Standard Demo)</option>
+              <option value="15">15 Minutes</option>
+              <option value="60">1 Hour</option>
+            </select>
+          </div>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <script src="/app.js"></script>
+</body>
+</html>
